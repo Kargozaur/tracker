@@ -691,6 +691,7 @@ dependencies = [
     { name = "fastapi", extra = ["all"] },
     { name = "jose" },
     { name = "psycopg2" },
+    { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "sqlalchemy" },
 ]
@@ -701,6 +702,7 @@ requires-dist = [
     { name = "fastapi", extras = ["all"], specifier = ">=0.123.5" },
     { name = "jose", extras = ["jwt"], specifier = ">=1.0.0" },
     { name = "psycopg2", specifier = ">=2.9.11" },
+    { name = "pydantic", extras = ["python-dotenv"], specifier = ">=2.12.5" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "sqlalchemy", specifier = ">=2.0.44" },
 ]

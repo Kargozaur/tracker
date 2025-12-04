@@ -1,12 +1,13 @@
 from typing import List, Optional, Annotated
-from pydantic import BaseModel, EmailStr, Field, AfterValidator, model_validator
+from pydantic import BaseModel, EmailStr, Field, AfterValidator
+from pydantic import model_validator
 from datetime import datetime
 from enum import Enum
 
 
 def is_positive(value: float | int) -> float:
     if value < 0:
-        raise ValueError(f"Value has to be positive")
+        raise ValueError("Value has to be positive")
     return value
 
 
@@ -76,7 +77,8 @@ class WorkoutLogCreate(BaseModel):
 
         if self.duration_minutes is None:
             self.duration_minutes = int(
-                (self.ended_at - self.started_at).total_seconds // 60
+                (self.ended_at - self.started_at).total_seconds()
+                // 60
             )
         return self
 
@@ -136,21 +138,6 @@ class WorkoutLogItemsResponse(BaseModel):
         from_attributes = True
 
 
-class ScheduledWorkoutResponse(BaseModel):
-    id: int
-    title: str
-    scheduled_at: datetime
-    duration_minutes: int
-    status: WorkoutStatus
-    created_at: datetime
-
-    user: UserResponse
-    plan: WorkoutPlanResponse | None
-
-    class Config:
-        from_attributes = True
-
-
 class WorkoutItemResponse(BaseModel):
     id: int
     sets: int
@@ -169,6 +156,21 @@ class WorkoutPlanResponse(BaseModel):
     description: Optional[str]
     is_public: bool
     created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ScheduledWorkoutResponse(BaseModel):
+    id: int
+    title: str
+    scheduled_at: datetime
+    duration_minutes: int
+    status: WorkoutStatus
+    created_at: datetime
+
+    user: UserResponse
+    plan: WorkoutPlanResponse
 
     class Config:
         from_attributes = True
