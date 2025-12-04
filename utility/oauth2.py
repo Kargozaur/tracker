@@ -53,7 +53,7 @@ def get_current_user(
     token_d: dict = verify_access_token(token, credential_exception)
     user: dict = (
         db.query(models.User)
-        .filter(models.User.id == token_d.id)
+        .filter(models.User.id == token_d.id)  # type: ignore
         .first()
     )
     return user
