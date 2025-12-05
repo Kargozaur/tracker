@@ -13,5 +13,4 @@ dependencies = [
     "pydantic[python-dotenv]>=2.12.5",
     "python-dotenv>=1.2.1",
     "python-jose>=3.5.0",
-    "sqlalchemy>=2.0.44",
 ]

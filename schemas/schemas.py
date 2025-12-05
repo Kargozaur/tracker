@@ -103,7 +103,6 @@ class WorkoutPlanCreate(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
-    created_at: datetime
 
     model_config = SettingsConfigDict(from_attributes=True)
 
@@ -203,6 +202,10 @@ class WorkoutItemsS(BaseModel):
     reps: str
     weight: Annotated[float, is_positive]
     rest_seconds: Annotated[int, is_positive]
+
+
+class LoginRequest(UserCreate):
+    pass
 
 
 class Token(BaseModel):

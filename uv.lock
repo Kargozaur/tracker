@@ -777,7 +777,6 @@ dependencies = [
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "python-jose" },
-    { name = "sqlalchemy" },
 ]
 
 [package.metadata]
@@ -790,7 +789,6 @@ requires-dist = [
     { name = "pydantic", extras = ["python-dotenv"], specifier = ">=2.12.5" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "python-jose", specifier = ">=3.5.0" },
-    { name = "sqlalchemy", specifier = ">=2.0.44" },
 ]
 
 [[package]]
