@@ -1,20 +1,19 @@
-"""Initial migration
+"""Adjusted tables
 
-Revision ID: 545dd28a5224
-Revises:
-Create Date: 2025-12-04 17:33:23.384667
+Revision ID: 7277e45d1b08
+Revises: 637c65a838d8
+Create Date: 2025-12-05 17:19:28.665695
 
 """
-
 from typing import Sequence, Union
 
-from alembic import op  # noqa: F401
-import sqlalchemy as sa  # noqa: F401
+from alembic import op
+import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "545dd28a5224"
-down_revision: Union[str, Sequence[str], None] = None
+revision: str = '7277e45d1b08'
+down_revision: Union[str, Sequence[str], None] = '637c65a838d8'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from schemas.models import (
+from schemas.models import (  # noqa: F401
     User,
     WorkoutItems,
     WorkoutLog,

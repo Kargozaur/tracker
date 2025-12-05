@@ -1,11 +1,12 @@
 from typing import List, Optional, Annotated
 from pydantic import BaseModel, EmailStr, Field, AfterValidator
 from pydantic import model_validator
+from pydantic_settings import SettingsConfigDict
 from datetime import datetime
 from enum import Enum
 
 
-def is_positive(value: float | int) -> float:
+def is_positive(value: float | int) -> float | int:
     if value < 0:
         raise ValueError("Value has to be positive")
     return value
@@ -25,11 +26,12 @@ class WorkoutStatus(BaseEnum):
 
 class ExerciseType(BaseEnum):
     cardio = "cardio"
-    strength = "strength"
-    flexibility = "flexibility"
+    back = "back"
+    shoulders = "shoulders"
     legs = "legs"
     chest = "chest"
-    hands = "hands"
+    biceps = "biceps"
+    abs = "abs"
 
 
 class WorkoutLogItemCreate(BaseModel):
@@ -92,10 +94,10 @@ class WorkoutItemCreate(BaseModel):
 
 
 class WorkoutPlanCreate(BaseModel):
-    title: str = Field(..., min_length=8)
+    user_id: int
+    title: str = Field(..., min_length=6)
     description: Optional[str] = ""
-    exercises: Annotated[List[WorkoutItemCreate], Field(min_length=1)]
-    is_public: bool = False
+    is_public: Optional[bool] = False
 
 
 class UserResponse(BaseModel):
@@ -103,16 +105,14 @@ class UserResponse(BaseModel):
     email: EmailStr
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = SettingsConfigDict(from_attributes=True)
 
 
 class ExerciseCategoryResponse(BaseModel):
     id: int
     name: str
 
-    class Config:
-        from_attribute = True
+    model_config = SettingsConfigDict(from_attributes=True)
 
 
 class ExerciseResponse(BaseModel):
@@ -122,8 +122,7 @@ class ExerciseResponse(BaseModel):
     category: ExerciseCategoryResponse
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = SettingsConfigDict(from_attributes=True)
 
 
 class WorkoutLogItemsResponse(BaseModel):
@@ -134,8 +133,7 @@ class WorkoutLogItemsResponse(BaseModel):
     notes: Optional[str]
     exercise: ExerciseResponse
 
-    class Config:
-        from_attributes = True
+    model_config = SettingsConfigDict(from_attributes=True)
 
 
 class WorkoutItemResponse(BaseModel):
@@ -146,8 +144,7 @@ class WorkoutItemResponse(BaseModel):
     rest_seconds: int
     exercise: ExerciseResponse
 
-    class Config:
-        from_attributes = True
+    model_config = SettingsConfigDict(from_attributes=True)
 
 
 class WorkoutPlanResponse(BaseModel):
@@ -157,8 +154,7 @@ class WorkoutPlanResponse(BaseModel):
     is_public: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = SettingsConfigDict(from_attributes=True)
 
 
 class ScheduledWorkoutResponse(BaseModel):
@@ -172,8 +168,7 @@ class ScheduledWorkoutResponse(BaseModel):
     user: UserResponse
     plan: WorkoutPlanResponse
 
-    class Config:
-        from_attributes = True
+    model_config = SettingsConfigDict(from_attributes=True)
 
 
 class WorkoutPlanGeneralResponse(WorkoutPlanResponse):
@@ -190,8 +185,24 @@ class WorkoutLogResponse(BaseModel):
     plan: WorkoutPlanResponse
     items: List[WorkoutLogItemsResponse]
 
-    class Config:
-        from_attribute = True
+    model_config = SettingsConfigDict(from_attributes=True)
+
+
+class ExerciseS(BaseModel):
+    name: str
+    description: str
+    category_id: int
+
+    model_config = SettingsConfigDict(from_attributes=True)
+
+
+class WorkoutItemsS(BaseModel):
+    plan_id: int
+    exercise_id: int
+    sets: Annotated[int, is_positive]
+    reps: str
+    weight: Annotated[float, is_positive]
+    rest_seconds: Annotated[int, is_positive]
 
 
 class Token(BaseModel):

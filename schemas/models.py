@@ -120,6 +120,9 @@ class WorkoutItems(Base):
     exercise = relationship(
         "Exercise", back_populates="workout_items"
     )
+    workout_items = relationship(
+        "WorkoutLogItems", back_populates="workout"
+    )
 
 
 class ScheduledWorkout(Base):
@@ -192,10 +195,16 @@ class WorkoutLogItems(Base):
     exercise_id: Mapped[int] = mapped_column(
         ForeignKey("exercise.id")
     )
+    workout_item_id: Mapped[int] = mapped_column(
+        ForeignKey("workout_items.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     set_number: Mapped[int] = mapped_column(Integer)
     reps: Mapped[int] = mapped_column(Integer)
     weight: Mapped[float] = mapped_column(DECIMAL(5, 2))
     notes: Mapped[str] = mapped_column(String(300))
-
     log = relationship("WorkoutLog", back_populates="items")
     exercise = relationship("Exercise", back_populates="log_items")
+    workout = relationship(
+        "WorkoutItems", back_populates="workout_items"
+    )
