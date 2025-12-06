@@ -1,11 +1,14 @@
 from typing import List
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from database import get_db
 from schemas.models import Exercise, ExerciseCategory
 from schemas.schemas import (
+    ExerciseCreateResponse,
     ExerciseResponse,
+    ExerciseUpdate,
+    ExercisesCreate,
 )
 from fastapi import APIRouter
 
@@ -70,3 +73,89 @@ def get_exercise_by_id(
         )
 
     return exercises
+
+
+@router.post(
+    "/create_exercise", response_model=ExerciseCreateResponse
+)
+def create_exercise(
+    exercise: ExercisesCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    exercise_exists = (
+        db.execute(
+            select(Exercise.name, Exercise.description).where(
+                Exercise.name == exercise.name,
+                Exercise.description == exercise.description,
+            )
+        )
+        .mappings()
+        .first()
+    )
+    if exercise_exists:
+        raise HTTPException(
+            status_code=409, detail="Exercise already exists"
+        )
+    new_exercise = Exercise(
+        owner_id=current_user.id, **exercise.model_dump()
+    )
+    try:
+        db.add(new_exercise)
+        db.commit()
+    except Exception:
+        db.rollback()
+    finally:
+        db.refresh(new_exercise)
+    return new_exercise
+
+
+@router.delete("/{id}", status_code=204)
+def delete_exercise(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    delete_exercise = db.execute(
+        select(Exercise).where(Exercise.id == id)
+    ).scalar_one_or_none()
+    if not delete_exercise:
+        raise HTTPException(
+            status_code=404, detail="Exercise not found"
+        )
+
+    if delete_exercise.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        db.delete(delete_exercise)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+
+@router.put("/{id}", status_code=205)
+def update_exercise(
+    id: int,
+    exercise: ExerciseUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    update_exercise = db.execute(
+        select(Exercise).where(Exercise.id == id)
+    ).scalar_one_or_none()
+
+    if not update_exercise:
+        raise HTTPException(
+            status_code=404, detail="Exercise not found"
+        )
+    if update_exercise.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unathorized")
+
+    update_data = exercise.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(update_exercise, field, value)
+    db.commit()
+    db.refresh(update_exercise)
+    return Response(status_code=205)

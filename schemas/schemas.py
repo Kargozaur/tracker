@@ -59,9 +59,10 @@ class ScheduledWorkoutCreate(BaseModel):
 
 
 class ExercisesCreate(BaseModel):
-    title: str = Field(..., min_length=8, max_length=100)
-    category: ExerciseType
+    name: str = Field(..., min_length=8, max_length=100)
+    category_id: int
     description: Optional[str] = ""
+    is_global: Optional[bool] = False
 
 
 class WorkoutLogCreate(BaseModel):
@@ -111,6 +112,21 @@ class ExerciseResponse(BaseModel):
     category: str
     title: str
     description: Optional[str]
+
+    model_config = SettingsConfigDict(from_attributes=True)
+
+
+class ExerciseUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    is_global: bool
+
+    model_config = SettingsConfigDict(from_attributes=True)
+
+
+class ExerciseCreateResponse(BaseModel):
+    id: int
+    created_at: datetime
 
     model_config = SettingsConfigDict(from_attributes=True)
 

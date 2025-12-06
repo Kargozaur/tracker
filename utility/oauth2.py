@@ -36,7 +36,7 @@ def verify_access_token(token: str, credential_exception) -> dict:
         id = payload.get("user_id")
         if not id:
             raise credential_exception
-        token_data: Any = TokenData(id=id)
+        token_data: Any = TokenData(id=str(id))  # type: ignore
     except JWTError:
         raise credential_exception
     return token_data
