@@ -9,6 +9,8 @@ from schemas.schemas import (
 )
 from fastapi import APIRouter
 
+from utility.oauth2 import get_current_user
+
 router = APIRouter(prefix="/exercise", tags=["exercises"])
 
 
@@ -26,7 +28,6 @@ def get_all_exercises(
                 )
                 .join(ExerciseCategory.exercises)
                 .where(Exercise.is_global.is_(True))
-                .order_by(ExerciseCategory.name, Exercise.name)
             )
         )
         .mappings()
@@ -39,30 +40,33 @@ def get_all_exercises(
     return exercises
 
 
-@router.get("/{id}", response_model=List[ExerciseResponse])
+@router.get(
+    "/{id}",
+    response_model=List[ExerciseResponse],
+)
 def get_exercise_by_id(
     id: int,
     db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
-    exercises = (
-        db.execute(
-            (
-                select(
-                    ExerciseCategory.name.label("category"),
-                    Exercise.name.label("title"),
-                    Exercise.description,
-                )
-                .join(ExerciseCategory.exercises)
-                .where(Exercise.id == id)
-                .order_by(ExerciseCategory.name, Exercise.name)
-            )
+    query = (
+        select(
+            ExerciseCategory.name.label("category"),
+            Exercise.name.label("title"),
+            Exercise.description,
         )
-        .mappings()
-        .all()
+        .join(ExerciseCategory.exercises)
+        .where(Exercise.id == id)
     )
+    if current_user:
+        query = query.where(
+            Exercise.is_global.is_(True)
+            | (Exercise.owner_id == current_user.id)
+        )
+    exercises = db.execute(query).mappings().all()
     if not exercises:
         raise HTTPException(
-            status_code=404, detail="Exercise is not found"
+            status_code=403, detail="Exercise is not found"
         )
 
     return exercises
