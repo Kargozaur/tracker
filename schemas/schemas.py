@@ -107,19 +107,10 @@ class UserResponse(BaseModel):
     model_config = SettingsConfigDict(from_attributes=True)
 
 
-class ExerciseCategoryResponse(BaseModel):
-    id: int
-    name: str
-
-    model_config = SettingsConfigDict(from_attributes=True)
-
-
 class ExerciseResponse(BaseModel):
-    id: int
+    category: str
     title: str
     description: Optional[str]
-    category: ExerciseCategoryResponse
-    created_at: datetime
 
     model_config = SettingsConfigDict(from_attributes=True)
 
