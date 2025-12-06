@@ -11,6 +11,7 @@ dependencies = [
     "jose[jwt]>=1.0.0",
     "psycopg2>=2.9.11",
     "pydantic[python-dotenv]>=2.12.5",
+    "pytest>=9.0.1",
     "python-dotenv>=1.2.1",
     "python-jose>=3.5.0",
 ]
