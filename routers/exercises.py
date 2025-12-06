@@ -66,7 +66,7 @@ def get_exercise_by_id(
     exercises = db.execute(query).mappings().all()
     if not exercises:
         raise HTTPException(
-            status_code=403, detail="Exercise is not found"
+            status_code=404, detail="Exercise is not found"
         )
 
     return exercises
