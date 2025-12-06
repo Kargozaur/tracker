@@ -31,6 +31,7 @@ class User(Base):
         "ScheduledWorkout", back_populates="user"
     )
     workout_logs = relationship("WorkoutLog", back_populates="user")
+    users = relationship("Exercise", back_populates="user")
 
 
 class ExerciseCategory(Base):
@@ -57,6 +58,14 @@ class Exercise(Base):
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=text("now()")
     )
+    owner_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        server_default=text("null"),
+    )
+    is_global: Mapped[bool] = mapped_column(
+        Boolean, server_default=text("false")
+    )
 
     category = relationship(
         "ExerciseCategory", back_populates="exercises"
@@ -67,6 +76,7 @@ class Exercise(Base):
     log_items = relationship(
         "WorkoutLogItems", back_populates="exercise"
     )
+    user = relationship("User", back_populates="users")
 
 
 class WorkoutPlans(Base):

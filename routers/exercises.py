@@ -25,6 +25,7 @@ def get_all_exercises(
                     Exercise.description,
                 )
                 .join(ExerciseCategory.exercises)
+                .where(Exercise.is_global.is_(True))
                 .order_by(ExerciseCategory.name, Exercise.name)
             )
         )
