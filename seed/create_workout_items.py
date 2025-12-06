@@ -161,7 +161,7 @@ workout_items = [
 def create_workout_items(items: list):
     Session = sessionmaker(bind=engine)
     session = Session()
-    with session:
+    with session.begin():
         p_id: Sequence[int] = (
             session.execute(select(WorkoutPlans.id)).scalars().all()
         )

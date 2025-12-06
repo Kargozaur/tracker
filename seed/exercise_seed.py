@@ -25,6 +25,7 @@ exercise_category: list = [
 def add_values(values: list):
     Session = sessionmaker(bind=engine)
     session = Session()
+    session.begin()
     for value in values:
         existing_category: dict = (
             session.query(ExerciseCategory)

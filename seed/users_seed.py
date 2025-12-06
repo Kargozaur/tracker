@@ -21,13 +21,14 @@ users: dict = {
     "johndoe@example.com": "12345678",
     "janedoe@example.com": "password",
     "immark@example.com": "mycoolpassword",
-    "kol": 1234,
+    "kali@example.com": "12345678",
 }
 
 
 def create_users(users: dict):
     Session = sessionmaker(bind=engine)
     session = Session()
+    session.begin()
     try:
         for email, password in users.items():
 

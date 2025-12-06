@@ -66,7 +66,7 @@ exercise = [
 def create_exercise(exercises: list):
     Session = sessionmaker(bind=engine)
     session = Session()
-    with session:
+    with session.begin():
         exercise_types_id: Sequence[int] = (
             session.execute(select(ExerciseCategory.id))
             .scalars()

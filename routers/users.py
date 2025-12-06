@@ -36,10 +36,9 @@ def login_user(
     user: LoginRequest,
     db: Session = Depends(get_db),
 ):
-    with db:
-        user_data: dict = (
-            db.query(User).filter(User.email == user.email).first()
-        )
+    user_data: dict = db.scalar(
+        select(User).where(User.email == user.email)
+    )
     if not user_data:
         raise HTTPException(
             status_code=403,
@@ -56,9 +55,13 @@ def login_user(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/protected")
-def protected_route(current_user: str = Depends(get_current_user)):
-    return {"message": "Access granted", "user": current_user}
+# test function for jwt
+@router.get("/protected", response_model=UserResponse)
+def protected_route(
+    current_user: UserResponse = Depends(get_current_user),
+):
+    response = {"id": current_user.id, "email": current_user.email}
+    return response
 
 
 @router.get("/{id}", status_code=200, response_model=UserResponse)

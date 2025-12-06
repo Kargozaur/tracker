@@ -67,7 +67,7 @@ workout_plans = [
 def create_workout_plan(plans: list):
     Session = sessionmaker(bind=engine)
     session = Session()
-    with session:
+    with session.begin():
         get_users_id: Sequence[int] = (
             session.execute(select(User.id)).scalars().all()
         )
