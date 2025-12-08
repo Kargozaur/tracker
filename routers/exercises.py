@@ -1,5 +1,5 @@
-from typing import List, Sequence
-from fastapi import Depends, HTTPException, Response
+from typing import List, Optional, Sequence
+from fastapi import Depends, HTTPException, Query, Response
 from sqlalchemy import RowMapping, select
 from sqlalchemy.orm import Session
 from database import get_db
@@ -17,9 +17,10 @@ from utility.oauth2 import get_current_user
 router = APIRouter(prefix="/exercise", tags=["exercises"])
 
 
-@router.get("/", response_model=List[ExerciseResponse])
-def get_all_exercises(
+@router.get("/public", response_model=List[ExerciseResponse])
+def get_exercises_public(
     db: Session = Depends(get_db),
+    search: Optional[str] = Query("", alias="name"),
 ):
     exercises: Sequence[RowMapping] = (
         db.execute(
@@ -30,7 +31,42 @@ def get_all_exercises(
                     Exercise.description,
                 )
                 .join(ExerciseCategory.exercises)
-                .where(Exercise.is_global.is_(True))
+                .where(
+                    Exercise.is_global.is_(True),
+                    Exercise.name.contains(search),
+                )
+            )
+        )
+        .mappings()
+        .all()
+    )
+    if not exercises:
+        raise HTTPException(
+            status_code=404, detail="Exercises are not found"
+        )
+    return exercises
+
+
+@router.get("/", response_model=List[ExerciseResponse])
+def get_all_exercises_for_user(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+    search: Optional[str] = Query(default="", alias="name"),
+):
+    exercises: Sequence[RowMapping] = (
+        db.execute(
+            (
+                select(
+                    ExerciseCategory.name.label("category"),
+                    Exercise.name.label("title"),
+                    Exercise.description,
+                )
+                .join(ExerciseCategory.exercises)
+                .where(
+                    Exercise.name.contains(search),
+                    (Exercise.is_global.is_(True))
+                    | (Exercise.owner_id == current_user.id),
+                )
             )
         )
         .mappings()
