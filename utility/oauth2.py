@@ -10,7 +10,9 @@ from settings import settings
 from typing import Any
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
+optional_oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="login", auto_error=False
+)
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
@@ -57,3 +59,28 @@ def get_current_user(
         .first()
     )
     return user
+
+
+def get_optional_user(
+    token: str = Depends(optional_oauth2_scheme),
+    db: Session = Depends(get_db),
+):
+    if token is None:
+        return None
+    try:
+        credential_exception = HTTPException(
+            status_code=401,
+            detail="Unauthorized",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+        token_d: dict = verify_access_token(
+            token, credential_exception
+        )
+        user = (
+            db.query(models.User)
+            .filter(models.User.id == token_d.id)  # type: ignore
+            .first()
+        )
+        return user
+    except Exception:
+        return None
