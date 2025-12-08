@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Sequence
 from fastapi import Depends, HTTPException, Response
-from sqlalchemy import select
+from sqlalchemy import RowMapping, select
 from sqlalchemy.orm import Session
 from database import get_db
 from schemas.models import Exercise, ExerciseCategory
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/exercise", tags=["exercises"])
 def get_all_exercises(
     db: Session = Depends(get_db),
 ):
-    exercises = (
+    exercises: Sequence[RowMapping] = (
         db.execute(
             (
                 select(
@@ -66,7 +66,9 @@ def get_exercise_by_id(
             Exercise.is_global.is_(True)
             | (Exercise.owner_id == current_user.id)
         )
-    exercises = db.execute(query).mappings().all()
+    exercises: Sequence[RowMapping] = (
+        db.execute(query).mappings().all()
+    )
     if not exercises:
         raise HTTPException(
             status_code=404, detail="Exercise is not found"
@@ -83,7 +85,7 @@ def create_exercise(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    exercise_exists = (
+    exercise_exists: RowMapping | None = (
         db.execute(
             select(Exercise.name, Exercise.description).where(
                 Exercise.name == exercise.name,
@@ -97,7 +99,7 @@ def create_exercise(
         raise HTTPException(
             status_code=409, detail="Exercise already exists"
         )
-    new_exercise = Exercise(
+    new_exercise: Exercise = Exercise(
         owner_id=current_user.id, **exercise.model_dump()
     )
     try:
@@ -105,6 +107,9 @@ def create_exercise(
         db.commit()
     except Exception:
         db.rollback()
+        raise HTTPException(
+            status_code=422, detail="wrong credentials"
+        )
     finally:
         db.refresh(new_exercise)
     return new_exercise
@@ -116,7 +121,7 @@ def delete_exercise(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    delete_exercise = db.execute(
+    delete_exercise: Exercise | None = db.execute(
         select(Exercise).where(Exercise.id == id)
     ).scalar_one_or_none()
     if not delete_exercise:
@@ -142,7 +147,7 @@ def update_exercise(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    update_exercise = db.execute(
+    update_exercise: Exercise | None = db.execute(
         select(Exercise).where(Exercise.id == id)
     ).scalar_one_or_none()
 

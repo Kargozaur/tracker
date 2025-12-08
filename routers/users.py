@@ -1,3 +1,4 @@
+from typing import Any
 from fastapi import Depends, HTTPException
 from sqlalchemy import select  # noqa: F401
 from database import get_db
@@ -22,9 +23,9 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.post("/signin", status_code=201, response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    hashed_password = hash_password(user.password)
+    hashed_password: str = hash_password(user.password)
     user.password = hashed_password
-    new_user = User(**user.model_dump())
+    new_user: User = User(**user.model_dump())
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -36,7 +37,7 @@ def login_user(
     user: LoginRequest,
     db: Session = Depends(get_db),
 ):
-    user_data: dict = db.scalar(
+    user_data: User | None = db.scalar(
         select(User).where(User.email == user.email)
     )
     if not user_data:
@@ -51,7 +52,9 @@ def login_user(
             detail="Unknown user",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = create_access_token(data={"user_id": user_data.id})
+    access_token: str = create_access_token(
+        data={"user_id": user_data.id}
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -60,7 +63,10 @@ def login_user(
 def protected_route(
     current_user: UserResponse = Depends(get_current_user),
 ):
-    response = {"id": current_user.id, "email": current_user.email}
+    response: dict[str, Any] = {
+        "id": current_user.id,
+        "email": current_user.email,
+    }
     return response
 
 
