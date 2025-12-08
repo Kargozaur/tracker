@@ -12,7 +12,7 @@ from schemas.schemas import (
 )
 from fastapi import APIRouter
 
-from utility.oauth2 import get_current_user
+from utility.oauth2 import get_current_user, get_optional_user
 
 router = APIRouter(prefix="/exercise", tags=["exercises"])
 
@@ -86,7 +86,7 @@ def get_all_exercises_for_user(
 def get_exercise_by_id(
     id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_optional_user),
 ):
     query = (
         select(

@@ -95,7 +95,6 @@ class WorkoutItemCreate(BaseModel):
 
 
 class WorkoutPlanCreate(BaseModel):
-    user_id: int
     title: str = Field(..., min_length=6)
     description: Optional[str] = ""
     is_public: Optional[bool] = False
@@ -117,11 +116,17 @@ class ExerciseResponse(BaseModel):
 
 
 class ExerciseUpdate(BaseModel):
-    title: Optional[str] = None
+    title: Optional[str] = Field(None, min_length=6)
     description: Optional[str] = None
     is_global: bool
 
     model_config = SettingsConfigDict(from_attributes=True)
+
+
+class PlanUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=6)
+    description: Optional[str] = None
+    is_public: bool
 
 
 class ExerciseCreateResponse(BaseModel):
@@ -154,13 +159,15 @@ class WorkoutItemResponse(BaseModel):
 
 
 class WorkoutPlanResponse(BaseModel):
-    id: int
     title: str
-    description: Optional[str]
-    is_public: bool
+    description: str
     created_at: datetime
 
     model_config = SettingsConfigDict(from_attributes=True)
+
+
+class WorkoutPlanResponseForLoggedUser(WorkoutPlanResponse):
+    public: bool
 
 
 class ScheduledWorkoutResponse(BaseModel):
