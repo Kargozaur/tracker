@@ -22,7 +22,9 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post("/signin", status_code=201, response_model=UserResponse)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
+def create_user(
+    user: UserCreate, db: Session = Depends(get_db)
+) -> User:
     hashed_password: str = hash_password(user.password)
     user.password = hashed_password
     new_user: User = User(**user.model_dump())
@@ -36,7 +38,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 def login_user(
     user: LoginRequest,
     db: Session = Depends(get_db),
-):
+) -> dict[str, str]:
     user_data: User | None = db.scalar(
         select(User).where(User.email == user.email)
     )
@@ -71,7 +73,7 @@ def protected_route(
 
 
 @router.get("/{id}", status_code=200, response_model=UserResponse)
-def get_user(id: int, db: Session = Depends(get_db)):
+def get_user(id: int, db: Session = Depends(get_db)) -> User:
     user: UserResponse = db.get(User, id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

@@ -12,7 +12,7 @@ from schemas.schemas import (
 from database import get_db
 from utility.oauth2 import get_current_user, get_optional_user
 
-router = APIRouter(prefix="/workouts", tags=["Workouts"])
+router = APIRouter(prefix="/workoutplans", tags=["Workouts"])
 
 
 @router.get(
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/workouts", tags=["Workouts"])
 )
 def get_workout_plan(
     db=Depends(get_db), current_user=Depends(get_current_user)
-):
+) -> Sequence[RowMapping]:
     workout: Sequence[RowMapping] = (
         db.execute(
             select(
@@ -44,7 +44,9 @@ def get_workout_plan(
 
 
 @router.get("/plans/all", response_model=List[WorkoutPlanResponse])
-def get_public_plans(db: Session = Depends(get_db)):
+def get_public_plans(
+    db: Session = Depends(get_db),
+) -> Sequence[RowMapping]:
     workout: Sequence[RowMapping] = (
         db.execute(
             select(
@@ -70,7 +72,7 @@ def get_plan_by_id(
     id: int,
     db: Session = Depends(get_db),
     current_user: Optional[dict] = Depends(get_optional_user),
-):
+) -> RowMapping:
     query = select(
         WorkoutPlans.title.label("title"),
         WorkoutPlans.description.label("description"),
@@ -98,7 +100,7 @@ def create_workout_plan(
     plan: WorkoutPlanCreate,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
-):
+) -> WorkoutPlans:
     plan_exists: RowMapping | None = (
         db.execute(
             select(WorkoutPlans).where(
@@ -134,7 +136,7 @@ def delete_plan(
     id: int,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
-):
+) -> None:
     delete_plan: RowMapping | None = db.execute(
         select(WorkoutPlans).where(WorkoutPlans.id == id)
     ).scalar_one_or_none()
@@ -160,7 +162,7 @@ def edit_plan(
     plan: PlanUpdate,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
-):
+) -> Response:
     update_plan: RowMapping | None = db.execute(
         select(WorkoutPlans).where(WorkoutPlans.id == id)
     ).scalar_one_or_none()
