@@ -1,5 +1,10 @@
-from typing import List, Optional, Annotated
-from pydantic import BaseModel, EmailStr, Field, AfterValidator
+from typing import Any, List, Optional, Annotated
+from pydantic import (
+    BaseModel,
+    EmailStr,
+    Field,
+    AfterValidator,
+)
 from pydantic import model_validator
 from pydantic_settings import SettingsConfigDict
 from datetime import datetime
@@ -7,7 +12,7 @@ from enum import Enum
 
 
 def is_positive(value: float | int) -> float | int:
-    if value < 0:
+    if value <= 0:
         raise ValueError("Value has to be positive")
     return value
 
@@ -87,9 +92,10 @@ class WorkoutLogCreate(BaseModel):
 
 
 class WorkoutItemCreate(BaseModel):
-    exercise_id: Annotated[int, AfterValidator(is_positive)]
+    plan_id: int
+    exercise_id: list[int]
     sets: Annotated[int, AfterValidator(is_positive)]
-    reps: Annotated[int, AfterValidator(is_positive)]
+    reps: str
     weight: Annotated[float, AfterValidator(is_positive)]
     rest_seconds: Annotated[int, AfterValidator(is_positive)]
 
@@ -168,6 +174,42 @@ class WorkoutPlanResponse(BaseModel):
 
 class WorkoutPlanResponseForLoggedUser(WorkoutPlanResponse):
     public: bool
+
+
+class WorkoutItemsResponse(BaseModel):
+    id: int
+    plan_id: int
+    exercise_name: str
+    exercise_description: str
+    exercise_purpose: str
+    sets: int
+    reps: str
+
+    model_config = SettingsConfigDict(from_attributes=True)
+
+
+class WorkoutItemsCreateResponse(BaseModel):
+    id: int
+    plan_id: int
+    exercise_id: int
+
+    @model_validator(mode="before")
+    @classmethod
+    def convert_exercise_to_list(cls, data: Any) -> Any:
+        if isinstance(data, dict) and isinstance(
+            data.get("exercise_id"), int
+        ):
+            data["exercise_id"] = [data["exercise_id"]]
+        return data
+
+    model_config = SettingsConfigDict(from_attributes=True)
+
+
+class WorkoutItemsUpdate(BaseModel):
+    sets: Optional[str] = None
+    reps: Optional[str] = None
+    weight: Optional[float] = None
+    rest_seconds: Optional[int] = None
 
 
 class ScheduledWorkoutResponse(BaseModel):

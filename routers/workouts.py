@@ -101,20 +101,6 @@ def create_workout_plan(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> WorkoutPlans:
-    plan_exists: RowMapping | None = (
-        db.execute(
-            select(WorkoutPlans).where(
-                WorkoutPlans.title == plan.title,
-                WorkoutPlans.description == plan.description,
-            )
-        )
-        .mappings()
-        .first()
-    )
-    if plan_exists:
-        raise HTTPException(
-            status_code=409, detail="Plan already exists"
-        )
     new_plan: WorkoutPlans = WorkoutPlans(
         user_id=current_user.id, **plan.model_dump()
     )
