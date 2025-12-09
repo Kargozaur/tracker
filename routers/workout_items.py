@@ -239,3 +239,34 @@ def delete_exercise(
         raise
 
     return Response(status_code=204)
+
+
+@router.delete("/{pid}", status_code=204)
+def delete_plan(
+    pid: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    get_plan = db.execute(
+        select(WorkoutPlans).where(WorkoutPlans.id == pid)
+    ).scalar_one_or_none()
+
+    if not get_plan:
+        raise HTTPException(
+            status_code=404, detail="Plan doesn't exist"
+        )
+
+    if get_plan.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403, detail="You can not change this plan"
+        )
+    try:
+        db.query(WorkoutItems).filter(
+            WorkoutItems.plan_id == pid
+        ).delete(synchronize_session=False)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return Response(status_code=204)
