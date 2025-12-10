@@ -22,12 +22,10 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.post("/signin", status_code=201, response_model=UserResponse)
-def create_user(
-    user: UserCreate, db: Session = Depends(get_db)
-) -> User:
+def create_user(user: UserCreate, db: Session = Depends(get_db)):
     hashed_password: str = hash_password(user.password)
     user.password = hashed_password
-    new_user: User = User(**user.model_dump())
+    new_user = User(**user.model_dump())
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
