@@ -16,6 +16,8 @@ from schemas.schemas import WorkoutStatus
 
 
 class User(Base):
+    """users table"""
+
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -38,6 +40,8 @@ class User(Base):
 
 
 class ExerciseCategory(Base):
+    """exercise_category table"""
+
     __tablename__ = "exercise_category"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -49,6 +53,8 @@ class ExerciseCategory(Base):
 
 
 class Exercise(Base):
+    """exercise table"""
+
     __tablename__ = "exercise"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -80,6 +86,8 @@ class Exercise(Base):
 
 
 class WorkoutPlans(Base):
+    """workout_plans table"""
+
     __tablename__ = "workout_plans"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -106,6 +114,8 @@ class WorkoutPlans(Base):
 
 
 class WorkoutItems(Base):
+    """workout_items table"""
+
     __tablename__ = "workout_items"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -136,6 +146,10 @@ class WorkoutItems(Base):
 
 
 class ScheduledWorkout(Base):
+    """
+    scheduled_workout table
+    """
+
     __tablename__ = "scheduled_workout"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -173,6 +187,8 @@ class ScheduledWorkout(Base):
 
 
 class WorkoutLog(Base):
+    """workout_log table"""
+
     __tablename__ = "workout_log"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -203,6 +219,8 @@ class WorkoutLog(Base):
 
 
 class WorkoutLogItems(Base):
+    """workout_log_items table"""
+
     __tablename__ = "workout_log_items"
 
     id: Mapped[int] = mapped_column(primary_key=True)

@@ -238,6 +238,25 @@ class ScheduledWorkoutResponse(BaseModel):
     model_config = SettingsConfigDict(from_attributes=True)
 
 
+class ScheduledWorkoutGetResponse(BaseModel):
+    title: str
+    duration_minutes: int
+    scheduled_at: datetime
+    status: WorkoutStatus
+    plan: str
+
+
+class ScheduleUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=6)
+    scheduled_at: Annotated[
+        Optional[datetime], AfterValidator(validate_future_datetime)
+    ] = None
+    duration_minutes: Annotated[
+        Optional[int], AfterValidator(is_positive)
+    ] = None
+    status: Optional[WorkoutStatus] = None
+
+
 class WorkoutPlanGeneralResponse(WorkoutPlanResponse):
     user_id: int
     exercises: List[WorkoutItemResponse]
@@ -266,10 +285,10 @@ class ExerciseS(BaseModel):
 class WorkoutItemsS(BaseModel):
     plan_id: int
     exercise_id: int
-    sets: Annotated[int, is_positive]
+    sets: Annotated[int, AfterValidator(is_positive)]
     reps: str
-    weight: Annotated[float, is_positive]
-    rest_seconds: Annotated[int, is_positive]
+    weight: Annotated[float, AfterValidator(is_positive)]
+    rest_seconds: Annotated[int, AfterValidator(is_positive)]
 
 
 class LoginRequest(UserCreate):
