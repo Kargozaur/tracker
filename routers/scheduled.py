@@ -116,7 +116,6 @@ def update_schedule(
 ) -> Response:
     update_schedule: RowMapping = db.execute(
         select(ScheduledWorkout).where(
-            ScheduledWorkout.user_id == current_user.id,
             ScheduledWorkout.id == id,
         )
     ).scalar_one_or_none()
@@ -124,7 +123,8 @@ def update_schedule(
         raise HTTPException(
             status_code=404, detail="Nothing scheduld with this id"
         )
-
+    if update_schedule.user_id != current_user.id:
+        raise HTTPException(status_code=403)
     new_schedule: dict = schedule.model_dump(exclude_unset=True)
     for k, v in new_schedule.items():
         setattr(update_schedule, k, v)
