@@ -1,4 +1,4 @@
-from typing import List, Optional, Sequence
+from typing import Annotated, List, Optional, Sequence
 from fastapi import Depends, HTTPException, Query, Response
 from sqlalchemy import RowMapping, select
 from sqlalchemy.orm import Session
@@ -9,6 +9,7 @@ from schemas.schemas import (
     ExerciseResponse,
     ExerciseUpdate,
     ExercisesCreate,
+    PaginationParams,
 )
 from fastapi import APIRouter
 
@@ -16,61 +17,35 @@ from utility.oauth2 import get_current_user, get_optional_user
 
 router = APIRouter(prefix="/exercise", tags=["exercises"])
 
-
-@router.get("/public", response_model=List[ExerciseResponse])
-def get_exercises_public(
-    db: Session = Depends(get_db),
-    search: Optional[str] = Query("", alias="name"),
-):
-    exercises: Sequence[RowMapping] = (
-        db.execute(
-            (
-                select(
-                    ExerciseCategory.name.label("category"),
-                    Exercise.name.label("title"),
-                    Exercise.description,
-                )
-                .join(ExerciseCategory.exercises)
-                .where(
-                    Exercise.is_global.is_(True),
-                    Exercise.name.contains(search),
-                )
-            )
-        )
-        .mappings()
-        .all()
-    )
-    if not exercises:
-        raise HTTPException(
-            status_code=404, detail="Exercises are not found"
-        )
-    return exercises
+PaginationDep = Annotated[PaginationParams, Depends(PaginationParams)]
 
 
 @router.get("/", response_model=List[ExerciseResponse])
 def get_all_exercises_for_user(
+    pagination: PaginationDep,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_optional_user),
     search: Optional[str] = Query(default="", alias="name"),
 ):
-    exercises: Sequence[RowMapping] = (
-        db.execute(
-            (
-                select(
-                    ExerciseCategory.name.label("category"),
-                    Exercise.name.label("title"),
-                    Exercise.description,
-                )
-                .join(ExerciseCategory.exercises)
-                .where(
-                    Exercise.name.contains(search),
-                    (Exercise.is_global.is_(True))
-                    | (Exercise.owner_id == current_user.id),
-                )
-            )
+    query = select(
+        ExerciseCategory.name.label("category"),
+        Exercise.name.label("title"),
+        Exercise.description,
+    ).join(ExerciseCategory.exercises)
+    if not current_user:
+        query = query.where(
+            Exercise.name.contains(search),
+            (Exercise.is_global.is_(True)),
         )
-        .mappings()
-        .all()
+    elif current_user:
+        query = query.where(
+            Exercise.name.contains(search),
+            (Exercise.is_global.is_(True))
+            | (Exercise.owner_id == current_user.id),
+        )
+    query = query.limit(pagination.limit).offset(pagination.offset)
+    exercises: Sequence[RowMapping] = (
+        db.execute(query).mappings().all()
     )
     if not exercises:
         raise HTTPException(

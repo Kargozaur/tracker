@@ -271,3 +271,8 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[int] = None
+
+
+class PaginationParams(BaseModel):
+    limit: int = Field(5, ge=5, le=20)
+    offset: int = Field(0, ge=0, le=20)

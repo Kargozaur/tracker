@@ -1,41 +1,43 @@
 from fastapi import Depends, HTTPException, APIRouter, Response
 from sqlalchemy import select, RowMapping
 from sqlalchemy.orm import Session
-from typing import List, Optional, Sequence
+from typing import Annotated, List, Optional, Sequence
 from schemas.models import WorkoutPlans
 from schemas.schemas import (
+    PaginationParams,
     PlanUpdate,
     WorkoutPlanCreate,
     WorkoutPlanResponse,
-    WorkoutPlanResponseForLoggedUser,
 )
 from database import get_db
 from utility.oauth2 import get_current_user, get_optional_user
 
+PaginationDep = Annotated[PaginationParams, Depends(PaginationParams)]
+
 router = APIRouter(prefix="/workoutplans", tags=["Workouts"])
 
 
-@router.get(
-    "/plans", response_model=List[WorkoutPlanResponseForLoggedUser]
-)
+@router.get("/", response_model=List[WorkoutPlanResponse])
 def get_workout_plan(
-    db=Depends(get_db), current_user=Depends(get_current_user)
+    pagination: PaginationDep,
+    db=Depends(get_db),
+    current_user=Depends(get_optional_user),
 ) -> Sequence[RowMapping]:
-    workout: Sequence[RowMapping] = (
-        db.execute(
-            select(
-                WorkoutPlans.title.label("title"),
-                WorkoutPlans.description.label("description"),
-                WorkoutPlans.is_public.label("public"),
-                WorkoutPlans.created_at.label("created_at"),
-            ).where(
-                (WorkoutPlans.user_id == current_user.id)
-                | WorkoutPlans.is_public.is_(True)
-            )
-        )
-        .mappings()
-        .all()
+    query = select(
+        WorkoutPlans.title.label("title"),
+        WorkoutPlans.description.label("description"),
+        WorkoutPlans.is_public.label("public"),
+        WorkoutPlans.created_at.label("created_at"),
     )
+    if not current_user:
+        query = query.where(WorkoutPlans.is_public.is_(True))
+    elif current_user:
+        query = query.where(
+            (WorkoutPlans.user_id == current_user.id)
+            | WorkoutPlans.is_public.is_(True)
+        )
+    query = query.limit(pagination.limit).offset(pagination.offset)
+    workout: Sequence[RowMapping] = db.execute(query).mappings().all()
     if not workout:
         raise HTTPException(
             status_code=404, detail="Workout plans doesn't exists"
@@ -43,31 +45,7 @@ def get_workout_plan(
     return workout
 
 
-@router.get("/plans/all", response_model=List[WorkoutPlanResponse])
-def get_public_plans(
-    db: Session = Depends(get_db),
-) -> Sequence[RowMapping]:
-    workout: Sequence[RowMapping] = (
-        db.execute(
-            select(
-                WorkoutPlans.title.label("title"),
-                WorkoutPlans.description.label("description"),
-                WorkoutPlans.created_at.label("created_at"),
-            ).where(WorkoutPlans.is_public.is_(True))
-        )
-        .mappings()
-        .all()
-    )
-
-    if not workout:
-        raise HTTPException(
-            status_code=404, detail="Workout plans doesn't exists"
-        )
-
-    return workout
-
-
-@router.get("/plans/{id}", response_model=WorkoutPlanResponse)
+@router.get("/{id}", response_model=WorkoutPlanResponse)
 def get_plan_by_id(
     id: int,
     db: Session = Depends(get_db),
