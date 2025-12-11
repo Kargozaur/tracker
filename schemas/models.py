@@ -6,10 +6,13 @@ from sqlalchemy import (
     Integer,
     ForeignKey,
     DECIMAL,
+    Enum,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from sqlalchemy.types import TIMESTAMP
+
+from schemas.schemas import WorkoutStatus
 
 
 class User(Base):
@@ -72,9 +75,6 @@ class Exercise(Base):
     )
     workout_items = relationship(
         "WorkoutItems", back_populates="exercise"
-    )
-    log_items = relationship(
-        "WorkoutLogItems", back_populates="exercise"
     )
     user = relationship("User", back_populates="users")
 
@@ -151,8 +151,15 @@ class ScheduledWorkout(Base):
         TIMESTAMP(timezone=True)
     )
     duration_minutes: Mapped[int] = mapped_column(Integer)
-    status: Mapped[str] = mapped_column(
-        String(20), server_default=text("'pending'")
+    status: Mapped[WorkoutStatus] = mapped_column(
+        Enum(
+            WorkoutStatus,
+            name="workout_status_enum",
+            create_type=True,
+            native_enum=False,
+            validate_string=True,
+        ),
+        default=WorkoutStatus.pending,
     )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=text("now()")
@@ -202,9 +209,6 @@ class WorkoutLogItems(Base):
     log_id: Mapped[int] = mapped_column(
         ForeignKey("workout_log.id", ondelete="CASCADE")
     )
-    exercise_id: Mapped[int] = mapped_column(
-        ForeignKey("exercise.id")
-    )
     workout_item_id: Mapped[int] = mapped_column(
         ForeignKey("workout_items.id", ondelete="SET NULL"),
         nullable=True,
@@ -214,7 +218,6 @@ class WorkoutLogItems(Base):
     weight: Mapped[float] = mapped_column(DECIMAL(5, 2))
     notes: Mapped[str] = mapped_column(String(300))
     log = relationship("WorkoutLog", back_populates="items")
-    exercise = relationship("Exercise", back_populates="log_items")
     workout = relationship(
         "WorkoutItems", back_populates="workout_items"
     )

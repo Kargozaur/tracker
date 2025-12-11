@@ -7,7 +7,7 @@ from pydantic import (
 )
 from pydantic import model_validator
 from pydantic_settings import SettingsConfigDict
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 
@@ -15,6 +15,24 @@ def is_positive(value: float | int) -> float | int:
     if value <= 0:
         raise ValueError("Value has to be positive")
     return value
+
+
+def validate_future_datetime(date: datetime) -> datetime:
+    now = datetime.now(timezone.utc)
+
+    if date.tzinfo is None:
+        raise ValueError("Date has to contain timezone")
+
+    date_utc = date.astimezone(timezone.utc)
+    if date_utc <= now:
+        raise ValueError("Date has to be in the future")
+
+    return date
+
+
+FutureDate = Annotated[
+    datetime, AfterValidator(validate_future_datetime)
+]
 
 
 class BaseEnum(str, Enum):
@@ -57,9 +75,10 @@ class UserLogin(UserCreate):
 
 
 class ScheduledWorkoutCreate(BaseModel):
+    plan_id: int
     title: str = Field(..., min_length=8)
-    plan: Annotated[List[str], Field(min_length=1)]
-    duration: Annotated[int, AfterValidator(is_positive)]
+    duration_minutes: Annotated[int, AfterValidator(is_positive)]
+    scheduled_at: FutureDate
     status: WorkoutStatus = WorkoutStatus.pending
 
 
@@ -172,10 +191,6 @@ class WorkoutPlanResponse(BaseModel):
     model_config = SettingsConfigDict(from_attributes=True)
 
 
-class WorkoutPlanResponseForLoggedUser(WorkoutPlanResponse):
-    public: bool
-
-
 class WorkoutItemsResponse(BaseModel):
     id: int
     plan_id: int
@@ -218,9 +233,6 @@ class ScheduledWorkoutResponse(BaseModel):
     scheduled_at: datetime
     duration_minutes: int
     status: WorkoutStatus
-    created_at: datetime
-
-    user: UserResponse
     plan: WorkoutPlanResponse
 
     model_config = SettingsConfigDict(from_attributes=True)
