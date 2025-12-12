@@ -116,13 +116,13 @@ def create_exercise(
     try:
         db.add(new_exercise)
         db.commit()
+        db.refresh(new_exercise)
     except Exception:
         db.rollback()
         raise HTTPException(
             status_code=422, detail="wrong credentials"
         )
-    finally:
-        db.refresh(new_exercise)
+
     return new_exercise
 
 

@@ -85,13 +85,13 @@ def create_workout_plan(
     try:
         db.add(new_plan)
         db.commit()
+        db.refresh(new_plan)
+
     except Exception:
         db.rollback()
         raise HTTPException(
             status_code=422, detail="wrong credentials"
         )
-    finally:
-        db.refresh(new_plan)
     return new_plan
 
 

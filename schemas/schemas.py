@@ -7,7 +7,7 @@ from pydantic import (
 )
 from pydantic import model_validator
 from pydantic_settings import SettingsConfigDict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 
 
@@ -91,22 +91,22 @@ class ExercisesCreate(BaseModel):
 
 class WorkoutLogCreate(BaseModel):
     plan_id: int
+    scheduled_id: int
     notes: Optional[str] = ""
-    items: List[WorkoutLogItemCreate]
     started_at: datetime
     ended_at: datetime
-    duration_minutes: Optional[int] = None
 
     @model_validator(mode="after")
-    def validate_times(self):
-        if self.started_at > self.ended_at:
-            raise ValueError("ended_at must be higher than")
+    def validate_time(self):
+        if self.ended_at <= self.started_at:
+            raise ValueError("End time has to be greater than start")
 
-        if self.duration_minutes is None:
-            self.duration_minutes = int(
-                (self.ended_at - self.started_at).total_seconds()
-                // 60
+        time_diff = self.ended_at - self.started_at
+        if time_diff > timedelta(hours=4):
+            raise ValueError(
+                "Interval between start and end has to be lesser than 4 hours"
             )
+
         return self
 
 
@@ -263,13 +263,27 @@ class WorkoutPlanGeneralResponse(WorkoutPlanResponse):
 
 
 class WorkoutLogResponse(BaseModel):
-    id: int
-    notes: Optional[str]
+    plan_name: str
+    scheduled_title: str
+    status: WorkoutStatus
+    scheduled: datetime
     started_at: datetime
     ended_at: datetime
-    duration_minutes: float
+    notes: str
+
+
+class UpdateLog(BaseModel):
+    started_at: Optional[datetime] = None
+    ended_at: Optional[datetime] = None
+    notes: Optional[str] = None
+
+
+class WorkoutLogCreateResponse(BaseModel):
+    id: int
+    notes: str
+    started_at: datetime
+    ended_at: datetime
     plan: WorkoutPlanResponse
-    items: List[WorkoutLogItemsResponse]
 
     model_config = SettingsConfigDict(from_attributes=True)
 

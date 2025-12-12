@@ -30,11 +30,10 @@ def schedule_workout(
     try:
         db.add(new_scheduled)
         db.commit()
+        db.refresh(new_scheduled)
     except Exception:
         db.rollback()
-        raise
-    finally:
-        db.refresh(new_scheduled)
+        raise HTTPException(status_code=500, detail=f"{Exception}")
 
     return new_scheduled
 

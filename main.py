@@ -6,6 +6,7 @@ from routers import (
     scheduled,
     users,
     workout_items,
+    workout_log,
     workouts,
 )
 
@@ -24,3 +25,4 @@ app.include_router(exercises.router)
 app.include_router(workouts.router)
 app.include_router(workout_items.router)
 app.include_router(scheduled.router)
+app.include_router(workout_log.router)
