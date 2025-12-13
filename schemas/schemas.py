@@ -58,11 +58,25 @@ class ExerciseType(BaseEnum):
 
 
 class WorkoutLogItemCreate(BaseModel):
-    exercise_id: Annotated[int, AfterValidator(is_positive)]
+    exercise_id: int
+    workout_item_id: Optional[int] = None
     set_number: Annotated[int, AfterValidator(is_positive)]
     reps: Annotated[int, AfterValidator(is_positive)]
     weight: Annotated[float, AfterValidator(is_positive)]
-    notes: Optional[str]
+    notes: Optional[str] = None
+
+
+class WorkoutLogItemsRequest(BaseModel):
+    log_id: int
+    items: List[WorkoutLogItemCreate]
+
+
+class WorkoutLogItemsUpdate(BaseModel):
+    reps: Optional[Annotated[int, AfterValidator(is_positive)]] = None
+    weight: Optional[
+        Annotated[int | float, AfterValidator(is_positive)]
+    ] = None
+    notes: Optional[str] = None
 
 
 class UserCreate(BaseModel):

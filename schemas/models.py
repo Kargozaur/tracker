@@ -83,6 +83,7 @@ class Exercise(Base):
         "WorkoutItems", back_populates="exercise"
     )
     user = relationship("User", back_populates="users")
+    log = relationship("WorkoutLogItems", back_populates="exer")
 
 
 class WorkoutPlans(Base):
@@ -227,6 +228,9 @@ class WorkoutLogItems(Base):
     log_id: Mapped[int] = mapped_column(
         ForeignKey("workout_log.id", ondelete="CASCADE")
     )
+    exercise_id: Mapped[int] = mapped_column(
+        ForeignKey("exercise.id", ondelete="SET NULL"), nullable=True
+    )
     workout_item_id: Mapped[int] = mapped_column(
         ForeignKey("workout_items.id", ondelete="SET NULL"),
         nullable=True,
@@ -239,3 +243,4 @@ class WorkoutLogItems(Base):
     workout = relationship(
         "WorkoutItems", back_populates="workout_items"
     )
+    exer = relationship("Exercise", back_populates="log")
