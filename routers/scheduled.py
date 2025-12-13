@@ -17,7 +17,7 @@ router = APIRouter(prefix="/scheduled", tags=["Scheduled"])
 PaginationDep = Annotated[PaginationParams, Depends(PaginationParams)]
 
 
-@router.post("/", response_model=ScheduledWorkoutResponse)
+@router.post("/create", response_model=ScheduledWorkoutResponse)
 def schedule_workout(
     scheduled: ScheduledWorkoutCreate,
     db: Session = Depends(get_db),
