@@ -11,6 +11,6 @@ wheels/
 
 #Env var
 .env
-
+.env.db
 #Checkbox
-checkbox.md
+checkbox.md.env.db .dockerignore

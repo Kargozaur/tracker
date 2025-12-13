@@ -2,12 +2,14 @@ version: '3.8'
 services:
   database:
     image: postgres:18.1-alpine3.22
+    env_file:
+      - .env.db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      -db_volume:/var/lib/postgresql/data
+      - db_volume:/var/lib/postgresql/data
     shm_size: 256mb
     restart: unless-stopped
     ports:
@@ -20,17 +22,13 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: tracker_app
+    command: uv run uvicorn main:app --reload --host 0.0.0.0 --port 7000
     env_file:
       - .env
     ports:
-      - "8000:8000"
-    volumes:
-      - ./:/app
+      - "7000:7000"
     depends_on:
       - database
-    environment:
-      - name=value
-    command: uvicorn main:app --host 0.0.0.0 --port 7000 --reload
     networks:
       - InternalNetwork
 

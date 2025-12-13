@@ -12,3 +12,4 @@ wheels/
 checkbox.md
 tests/
 *.pyc
+seed/
