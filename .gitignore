@@ -13,4 +13,6 @@ wheels/
 .env
 .env.db
 #Checkbox
-checkbox.md.env.db .dockerignore
+checkbox.md
+.env.db 
+.dockerignore
